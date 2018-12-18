@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="1.0">
+
+    <xs:simpleType name="MifareUID">
+        <xs:annotation>
+             <xs:documentation xml:lang="ru">Десятичный или шестнадцатиричный идентификатор Mifare UID, может быть 4 или 7 байт. В случае шестнадцатиричного представления требуются ведущие ноли.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:token">
+            <xs:pattern value="(((\d){1,17})|(0x[\dA-F]{8,14}))"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="GUID">
+        <xs:annotation>
+            <xs:documentation xml:lang="ru">
+                Представление идентификатора GUID.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <!-- <xs:pattern value="\{[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}\}"/> -->
+            <xs:pattern value="[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:attributeGroup name="FileManifets">
+        <xs:attribute name="FileDate" type="xs:dateTime" use="required">
+            <xs:annotation>
+                 <xs:documentation xml:lang="ru">Дата и время создания файла</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="CheckpointID" type="xs:integer" use="required">
+            <xs:annotation>
+                 <xs:documentation xml:lang="ru">Уникальный номер проходной в АСУ ВУЗ</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="FileManifestID">
+        <xs:attribute name="FileID" use="required" type="GUID">
+            <xs:annotation>
+                 <xs:documentation xml:lang="ru">Глобальный уникальный идентификатор файла (GUID)</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attributeGroup ref="FileManifets"/>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="Card">
+        <xs:attribute name="MifareUID" type="MifareUID" use="required">
+            <xs:annotation>
+                 <xs:documentation xml:lang="ru">Уникальный номер чипа карты Mifare UID (если начинается с 0x, то ожидается шестнадцатеричный формат, иначе десятичный)</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="Employee">
+        <xs:attribute name="EmpID" type="xs:integer">
+            <xs:annotation>
+                 <xs:documentation xml:lang="ru">Уникальный идентификатор человека в АСУ Вуз</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="Surname" type="xs:string">
+            <xs:annotation>
+                 <xs:documentation xml:lang="ru">Фамилия</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="Name" type="xs:string">
+            <xs:annotation>
+                 <xs:documentation xml:lang="ru">Имя</xs:documentation>
+            </xs:annotation>
+      
+                 <xs:documentation xml:lang="ru">Адрес фотографии</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="EventCard">
+        <xs:attributeGroup ref="Card"/>
+        <xs:attribute name="Date" type="xs:dateTime" use="required">
+            <xs:annotation>
+                 <xs:documentation xml:lang="ru">Момент возникновения события</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="Processing">
+        <xs:attribute name="ProcessingStatus">
+            <xs:annotation>
+                 <xs:documentation xml:lang="ru">Статус обработки события или файла с событиями (0 - Успешно обработан; 1 - В очереди на обработку; 2 - Частично не обработан, часть записей содержит ошибки; 3 - Не обработан)</xs:documentation>
+     
+            <xs:attributeGroup ref="EventCard"/>
+            <xs:attribute name="Direction" use="required">
+                <xs:annotation>
+                     <xs:documentation xml:lang="ru">Направление движения (1 - вход, 2 - выход)</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:integer">
+                        <xs:enumeration value="1"/>
+                        <xs:enumeration value="2"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Status" use="required">
+                <xs:annotation>
+                     <xs:documentation xml:lang="ru">Статус события (1 - разрешено, 0 - запрещено)</xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:integer">
+                        <xs:enumeration value="0"/>
+                        <xs:enumeration value="1"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="TurnstileID" type="xs:integer">
+                <xs:annotation>
+                     <xs:documentation xml:lang="ru">Номер турникета в справочнике АСУ ВУЗ</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="Events">
+        <xs:annotation>
+             <xs:documentation xml:lang="ru">Состав и структура файла с информацией с событиями СКУД</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" ref="Event"/>
+            </xs:sequence>
+            <xs:attributeGroup ref="FileManifestID"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="EventResponse">
+        <xs:annotation>
+             <xs:documentation xml:lang="ru">Сведения об обработки записи события</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:attributeGroup ref="EventCard"/>
+            <xs:attributeGroup ref="Processing"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="EventsResponse">
+        <xs:annotation>
+             <xs:documentation xml:lang="ru">Состав и структура файла с информацией об обработке файла с событиями</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence maxOccurs="1">
+                <xs:element maxOccurs="unbounded" ref="EventResponse"/>
+            </xs:sequence>
+            <xs:attributeGroup ref="FileManifestID"/>
+            <xs:attributeGroup ref="Processing"/>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
